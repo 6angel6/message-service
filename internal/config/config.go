@@ -9,7 +9,7 @@ type Config struct {
 func Read() Config {
 	var config Config
 	httpAddr := os.Getenv("HTTP_ADDR")
-	if httpAddr == "" {
+	if httpAddr != "" {
 		config.HTTPAddr = httpAddr
 	}
 	return config
