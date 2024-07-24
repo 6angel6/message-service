@@ -10,6 +10,9 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"message-service/internal/config"
+	"message-service/internal/handlers"
+	"message-service/internal/repository"
+	"message-service/internal/service"
 	"net/http"
 	"os"
 	"os/signal"
@@ -41,6 +44,11 @@ func run() error {
 		}
 	}(db)
 
+	//DI
+	repos := repository.NewRepository(db)
+	services := service.NewService(repos)
+	handler := handlers.NewHandler(services)
+
 	router := mux.NewRouter()
 	router.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json: charset=UTF-8")
@@ -49,6 +57,8 @@ func run() error {
 			"pong": true,
 		})
 	}).Methods("GET")
+
+	router.HandleFunc("/message", handler.CreateMessage).Methods("POST")
 
 	srv := http.Server{
 		Addr:    cfg.HTTPAddr,
