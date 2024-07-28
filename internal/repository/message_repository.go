@@ -31,16 +31,14 @@ func (r *MessageRepo) CreateMessage(msg *model.Message) error {
 func (r *MessageRepo) UpdateMessageStatus(status string, msgs ...model.Message) error {
 	query := `UPDATE messages SET status = $1 WHERE id = ANY($2)`
 
-	// Создаем массив UUID
 	ids := make([]uuid.UUID, 0, len(msgs))
 	for _, msg := range msgs {
 		ids = append(ids, msg.Id)
 	}
 
-	// Преобразуем массив UUID в формат, который PostgreSQL может интерпретировать
 	idsArray := pq.Array(ids)
 	log.Printf("Updating status to %s for IDs: %v", status, idsArray)
-	// Выполняем запрос
+
 	_, err := r.db.Exec(query, status, idsArray)
 	if err != nil {
 		log.Printf("Error updating message status: %v", err)
@@ -78,14 +76,14 @@ func (r *MessageRepo) UnprocessedMsgs() ([]model.Message, error) {
 	return messages, nil
 }
 
-func (r *MessageRepo) GetAllMessages() ([]model.Message, error) {
-	query := `SELECT id, content, status, created_at FROM messages`
-	rows, err := r.db.Query(query)
+func (r *MessageRepo) GetStats() ([]model.Message, error) {
+	query := `SELECT id, content, status, created_at FROM messages WHERE status = $1`
+	rows, err := r.db.Query(query, config.PROCESSED)
 	if err != nil {
 		return nil, err
 	}
-
 	defer rows.Close()
+
 	var msgs []model.Message
 	for rows.Next() {
 		var msg model.Message
@@ -94,6 +92,7 @@ func (r *MessageRepo) GetAllMessages() ([]model.Message, error) {
 			return nil, err
 		}
 		msgs = append(msgs, msg)
+
 	}
 	return msgs, nil
 }

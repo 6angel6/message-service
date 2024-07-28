@@ -4,14 +4,16 @@ import (
 	"context"
 	"message-service/internal/kafka"
 	"message-service/internal/model"
+	"message-service/internal/model/response"
 	"message-service/internal/repository"
 )
 
 type Message interface {
 	CreateMessage(content string) error
-	GetAllMessages() ([]model.Message, error)
 	ProcessMsg(ctx context.Context, msg model.Message) error
 	SendMsgToKafka(ctx context.Context) error
+	GetStats() ([]response.MessageResponse, error)
+	ConvertToMessageResponse(msg model.Message) response.MessageResponse
 }
 
 type Producer interface {

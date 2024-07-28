@@ -7,6 +7,7 @@ import (
 	"message-service/internal/config"
 	"message-service/internal/kafka"
 	"message-service/internal/model"
+	"message-service/internal/model/response"
 	"message-service/internal/repository"
 	"time"
 )
@@ -43,8 +44,6 @@ func (s *MessageService) SendMsgToKafka(ctx context.Context) error {
 
 	err = s.repo.UpdateMessageStatus(config.PROCESSING, msgs...)
 
-	time.Sleep(10 * time.Second)
-
 	err = s.producer.SendMessage(ctx, msgs...)
 	if err != nil {
 		return err
@@ -57,6 +56,25 @@ func (s *MessageService) ProcessMsg(_ context.Context, msg model.Message) error 
 	return s.repo.UpdateMessageStatus(config.PROCESSED, msg)
 }
 
-func (s *MessageService) GetAllMessages() ([]model.Message, error) {
-	return s.repo.GetAllMessages()
+func (s *MessageService) GetStats() ([]response.MessageResponse, error) {
+	messages, err := s.repo.GetStats()
+	if err != nil {
+		return nil, err
+	}
+
+	var messagesResponse []response.MessageResponse
+	for _, msg := range messages {
+		messagesResponse = append(messagesResponse, s.ConvertToMessageResponse(msg))
+	}
+
+	return messagesResponse, nil
+}
+
+func (s *MessageService) ConvertToMessageResponse(msg model.Message) response.MessageResponse {
+	return response.MessageResponse{
+		Id:        msg.Id,
+		Content:   msg.Content,
+		Status:    msg.Status,
+		CreatedAt: msg.CreatedAt,
+	}
 }

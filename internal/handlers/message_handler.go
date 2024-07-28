@@ -23,12 +23,11 @@ func (h *Handler) CreateMessage(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]string{"status": "Message saved!"})
 }
-
-func (h *Handler) GetAllMessages(w http.ResponseWriter, _ *http.Request) {
+func (h *Handler) GetStats(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	w.WriteHeader(http.StatusOK)
-	msgs, err := h.services.GetAllMessages()
+	msgs, err := h.services.GetStats()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

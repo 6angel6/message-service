@@ -63,7 +63,7 @@ func run() error {
 		w.Write([]byte("OK"))
 	})
 	router.HandleFunc("/api/message", handler.CreateMessage).Methods("POST")
-	router.HandleFunc("/api/messages", handler.GetAllMessages).Methods("GET")
+	router.HandleFunc("/api/messages/stats", handler.GetStats).Methods("GET")
 
 	srv := http.Server{
 		Addr:           cfg.HTTPAddr,
@@ -72,6 +72,7 @@ func run() error {
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
+
 	go func() {
 		timer := time.NewTimer(5 * time.Second)
 		defer timer.Stop()
