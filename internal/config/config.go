@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	HTTPAddr string
+	HTTPAddr  string
+	KafkaAddr []string
 }
 
 func Read() Config {
@@ -15,6 +16,11 @@ func Read() Config {
 	httpAddr := os.Getenv("HTTP_ADDR")
 	if httpAddr != "" {
 		config.HTTPAddr = httpAddr
+	}
+
+	kafkaAddr := os.Getenv("KAFKA_ADDR")
+	if kafkaAddr != "" {
+		config.KafkaAddr = []string{kafkaAddr}
 	}
 	return config
 }

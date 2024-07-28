@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -11,6 +10,7 @@ import (
 	"log"
 	"message-service/internal/config"
 	"message-service/internal/handlers"
+	"message-service/internal/kafka"
 	"message-service/internal/repository"
 	"message-service/internal/service"
 	"net/http"
@@ -38,6 +38,10 @@ func run() error {
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	defer func(db *sql.DB) {
 		err := db.Close()
 		if err != nil {
@@ -46,24 +50,47 @@ func run() error {
 
 	//DI
 	repos := repository.NewRepository(db)
-	services := service.NewService(repos)
+	producer := kafka.NewProducer([]string{"kafka:9092"})
+	consumer := kafka.NewConsumer([]string{"kafka:9092"})
+	services := service.NewService(repos, producer)
 	handler := handlers.NewHandler(services)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json: charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(map[string]bool{
-			"pong": true,
-		})
-	}).Methods("GET")
 
-	router.HandleFunc("/message", handler.CreateMessage).Methods("POST")
+	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("OK"))
+	})
+	router.HandleFunc("/api/message", handler.CreateMessage).Methods("POST")
+	router.HandleFunc("/api/messages", handler.GetAllMessages).Methods("GET")
 
 	srv := http.Server{
-		Addr:    cfg.HTTPAddr,
-		Handler: router,
+		Addr:           cfg.HTTPAddr,
+		Handler:        router,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
 	}
+	go func() {
+		timer := time.NewTimer(5 * time.Second)
+		defer timer.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				log.Println("send to Kafka:", ctx.Err())
+				return
+			case <-timer.C:
+				err := services.SendMsgToKafka(ctx)
+				if err != nil {
+					log.Println("send to Kafka:", err)
+				}
+				timer.Reset(5 * time.Second)
+			}
+		}
+	}()
+	go consumer.ConsumeMessage(ctx, services.ProcessMsg)
 
 	// listen to OS signals and gracefully shutdown HTTP server
 	stopped := make(chan struct{})

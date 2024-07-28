@@ -6,7 +6,10 @@ import (
 )
 
 type Message interface {
-	SaveMessage(msg *model.Messages) error
+	CreateMessage(msg *model.Message) error
+	GetAllMessages() ([]model.Message, error)
+	UpdateMessageStatus(status string, msgs ...model.Message) error
+	UnprocessedMsgs() ([]model.Message, error)
 }
 
 type Repository struct {
