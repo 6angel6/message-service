@@ -50,8 +50,8 @@ func run() error {
 
 	//DI
 	repos := repository.NewRepository(db)
-	producer := kafka.NewProducer([]string{"kafka:9092"})
-	consumer := kafka.NewConsumer([]string{"kafka:9092"})
+	producer := kafka.NewProducer(cfg.KafkaAddr)
+	consumer := kafka.NewConsumer(cfg.KafkaAddr)
 	services := service.NewService(repos, producer)
 	handler := handlers.NewHandler(services)
 

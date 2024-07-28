@@ -51,7 +51,7 @@ func (r *MessageRepo) UpdateMessageStatus(status string, msgs ...model.Message) 
 func (r *MessageRepo) UnprocessedMsgs() ([]model.Message, error) {
 	var messages []model.Message
 	query := `SELECT id, content, status, created_at FROM messages WHERE status = $1`
-	rows, err := r.db.Query(query, config.PENDING)
+	rows, err := r.db.Query(query, config.UNPROCESSED)
 	if err != nil {
 		log.Printf("Error fetching unprocessed messages: %v", err)
 		return nil, err

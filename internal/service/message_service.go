@@ -29,7 +29,7 @@ func (s *MessageService) CreateMessage(content string) error {
 	msg := &model.Message{
 		Id:        uuid.Must(uuid.NewV4()),
 		Content:   content,
-		Status:    config.PENDING,
+		Status:    config.UNPROCESSED,
 		CreatedAt: time.Now(),
 	}
 
