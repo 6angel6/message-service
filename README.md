@@ -45,3 +45,7 @@
 {
   "content": "string"
 }
+```
+4.  Документация доступно по:
+
+`http://localhost:8080/swagger/index.html`
