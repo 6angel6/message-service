@@ -7,7 +7,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	_ "github.com/swaggo/http-swagger"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"log"
+	_ "message-service/docs"
 	"message-service/internal/config"
 	"message-service/internal/handlers"
 	"message-service/internal/kafka"
@@ -20,6 +23,11 @@ import (
 	"time"
 )
 
+// @title Message Service API
+// @version 1.0
+// @description This is a server for a message service.
+// @host localhost:8080
+// @BasePath /
 func main() {
 	if err := run(); err != nil {
 		log.Fatal(err)
@@ -57,13 +65,11 @@ func run() error {
 
 	router := mux.NewRouter()
 
-	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	})
 	router.HandleFunc("/api/message", handler.CreateMessage).Methods("POST")
 	router.HandleFunc("/api/messages/stats", handler.GetStats).Methods("GET")
+
+	//doc
+	router.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	srv := http.Server{
 		Addr:           cfg.HTTPAddr,
