@@ -31,6 +31,20 @@ services:
     networks:
       - msg-processor
 
+  migrate:
+    restart: on-failure
+    env_file:
+      - .env
+    image: migrate/migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./migration:/migration
+    command:
+      ["-path", "/migration", "-database", "postgres://${DB_USER}:${DB_PASSWORD}@postgres:${DB_PORT}/${DB_NAME}?sslmode=disable", "up"]
+    networks:
+      - msg-processor
 
   zookeeper:
       image: "bitnami/zookeeper:latest"
