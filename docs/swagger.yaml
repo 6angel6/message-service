@@ -1,0 +1,43 @@
+basePath: /
+definitions:
+  request.MessageRequest:
+    description: Represents a request to create a message
+    properties:
+      content:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a server for a message service.
+  title: Message Service API
+  version: "1.0"
+paths:
+  /api/message:
+    post:
+      consumes:
+      - application/json
+      description: Create a new message with the given content
+      parameters:
+      - description: Message content
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/request.MessageRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create a new message
+      tags:
+      - messages
+  /api/messages/stats:
+    get:
+      description: Get statistics of messages from the service
+      produces:
+      - application/json
+      responses: {}
+      summary: Get message statistics
+      tags:
+      - messages
+swagger: "2.0"
