@@ -1,0 +1,64 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a server for a message service.",
+        "title": "Message Service API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/api/message": {
+            "post": {
+                "description": "Create a new message with the given content",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "messages"
+                ],
+                "summary": "Create a new message",
+                "parameters": [
+                    {
+                        "description": "Message content",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.MessageRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/messages/stats": {
+            "get": {
+                "description": "Get statistics of messages from the service",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "messages"
+                ],
+                "summary": "Get message statistics",
+                "responses": {}
+            }
+        }
+    },
+    "definitions": {
+        "request.MessageRequest": {
+            "description": "Represents a request to create a message",
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
